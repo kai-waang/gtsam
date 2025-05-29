@@ -99,8 +99,8 @@ HybridGaussianFactorGraph HybridSmoother::removeFixedValues(
       std::vector<double> probabilities(
           dkey.second, (1 - *marginalThreshold_) / dkey.second);
       probabilities[fixedValues_[key]] = *marginalThreshold_;
-      DecisionTreeFactor dtf({dkey}, probabilities);
-      updatedGraph.push_back(dtf);
+      DiscreteConditional dc(dkey, DiscreteKeys{}, probabilities);
+      updatedGraph.push_back(dc);
 
       // Remove fixed value
       fixedValues_.erase(key);
