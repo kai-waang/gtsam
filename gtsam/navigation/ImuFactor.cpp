@@ -131,7 +131,7 @@ template <class PIM>
 bool ImuFactorT<PIM>::equals(const NonlinearFactor& other, double tol) const {
   const This *e = dynamic_cast<const This*>(&other);
   const bool base = Base::equals(*e, tol);
-  const bool pim = _PIM_.equals(e->_PIM_, tol);
+  const bool pim = pim_.equals(e->pim_, tol);
   return e != nullptr && base && pim;
 }
 
@@ -142,7 +142,7 @@ Vector ImuFactorT<PIM>::evaluateError(const Pose3& pose_i, const Vector3& vel_i,
     const imuBias::ConstantBias& bias_i, OptionalMatrixType H1,
     OptionalMatrixType H2, OptionalMatrixType H3,
     OptionalMatrixType H4, OptionalMatrixType H5) const {
-  return _PIM_.computeErrorAndJacobians(pose_i, vel_i, pose_j, vel_j, bias_i,
+  return pim_.computeErrorAndJacobians(pose_i, vel_i, pose_j, vel_j, bias_i,
       H1, H2, H3, H4, H5);
 }
 
@@ -171,7 +171,7 @@ template <class PIM>
 bool ImuFactor2T<PIM>::equals(const NonlinearFactor& other, double tol) const {
   const This *e = dynamic_cast<const This*>(&other);
   const bool base = Base::equals(*e, tol);
-  const bool pim = _PIM_.equals(e->_PIM_, tol);
+  const bool pim = pim_.equals(e->pim_, tol);
   return e != nullptr && base && pim;
 }
 
@@ -182,7 +182,7 @@ Vector ImuFactor2T<PIM>::evaluateError(const NavState& state_i,
     const imuBias::ConstantBias& bias_i, //
     OptionalMatrixType H1, OptionalMatrixType H2,
     OptionalMatrixType H3) const {
-  return _PIM_.computeError(state_i, state_j, bias_i, H1, H2, H3);
+  return pim_.computeError(state_i, state_j, bias_i, H1, H2, H3);
 }
 
 //------------------------------------------------------------------------------

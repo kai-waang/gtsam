@@ -219,7 +219,7 @@ class GTSAM_EXPORT CombinedImuFactorT
                             imuBias::ConstantBias, imuBias::ConstantBias>
       Base;
 
-  PIM _PIM_;
+  PIM pim_;
 
  public:
   // Provide access to Matrix& version of evaluateError:
@@ -246,7 +246,7 @@ class GTSAM_EXPORT CombinedImuFactorT
       const PIM& preintegratedMeasurements)
       : Base(noiseModel::Gaussian::Covariance(preintegratedMeasurements.preintMeasCov()),
              pose_i, vel_i, pose_j, vel_j, bias_i, bias_j),
-        _PIM_(preintegratedMeasurements) {}
+        pim_(preintegratedMeasurements) {}
 
   ~CombinedImuFactorT() override {}
 
@@ -271,7 +271,7 @@ class GTSAM_EXPORT CombinedImuFactorT
   /** Access the preintegrated measurements. */
 
   const PIM& preintegratedMeasurements() const {
-    return _PIM_;
+    return pim_;
   }
 
   /** implement functions needed to derive from Factor */
@@ -295,7 +295,7 @@ class GTSAM_EXPORT CombinedImuFactorT
     // NoiseModelFactor6 instead of NoiseModelFactorN for backward compatibility
     ar& boost::serialization::make_nvp(
         "NoiseModelFactor6", boost::serialization::base_object<Base>(*this));
-    ar& BOOST_SERIALIZATION_NVP(_PIM_);
+    ar& BOOST_SERIALIZATION_NVP(pim_);
   }
 #endif
 

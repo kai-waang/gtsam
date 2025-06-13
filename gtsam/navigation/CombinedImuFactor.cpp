@@ -214,7 +214,7 @@ void CombinedImuFactorT<PIM>::print(const string& s,
        << keyFormatter(this->template key<3>()) << "," << keyFormatter(this->template key<4>()) << ","
        << keyFormatter(this->template key<5>()) << "," << keyFormatter(this->template key<6>())
        << ")\n";
-  _PIM_.print("  preintegrated measurements:");
+  pim_.print("  preintegrated measurements:");
   this->noiseModel_->print("  noise model: ");
 }
 
@@ -222,7 +222,7 @@ void CombinedImuFactorT<PIM>::print(const string& s,
 template <class PIM>
 bool CombinedImuFactorT<PIM>::equals(const NonlinearFactor& other, double tol) const {
   const This* e = dynamic_cast<const This*>(&other);
-  return e != nullptr && Base::equals(*e, tol) && _PIM_.equals(e->_PIM_, tol);
+  return e != nullptr && Base::equals(*e, tol) && pim_.equals(e->pim_, tol);
 }
 
 //------------------------------------------------------------------------------
@@ -243,7 +243,7 @@ Vector CombinedImuFactorT<PIM>::evaluateError(const Pose3& pose_i,
   Matrix93 D_r_vel_i, D_r_vel_j;
 
   // error wrt preintegrated measurements
-  Vector9 r_Rpv = _PIM_.computeErrorAndJacobians(pose_i, vel_i, pose_j, vel_j,
+  Vector9 r_Rpv = pim_.computeErrorAndJacobians(pose_i, vel_i, pose_j, vel_j,
       bias_i, H1 ? &D_r_pose_i : 0, H2 ? &D_r_vel_i : 0, H3 ? &D_r_pose_j : 0,
       H4 ? &D_r_vel_j : 0, H5 ? &D_r_bias_i : 0);
 

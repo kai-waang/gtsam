@@ -193,7 +193,7 @@ private:
   typedef NoiseModelFactorN<Pose3, Vector3, Pose3, Vector3,
       imuBias::ConstantBias> Base;
 
-  PIM _PIM_;
+  PIM pim_;
 
 public:
 
@@ -221,7 +221,7 @@ public:
       const PIM& preintegratedMeasurements)
       : Base(noiseModel::Gaussian::Covariance(preintegratedMeasurements.preintMeasCov()),
              pose_i, vel_i, pose_j, vel_j, bias),
-        _PIM_(preintegratedMeasurements) {}
+        pim_(preintegratedMeasurements) {}
 
   ~ImuFactorT() override {
   }
@@ -241,7 +241,7 @@ public:
   /** Access the preintegrated measurements. */
 
   const PIM& preintegratedMeasurements() const {
-    return _PIM_;
+    return pim_;
   }
 
   /** implement functions needed to derive from Factor */
@@ -335,7 +335,7 @@ public:
     // NoiseModelFactor5 instead of NoiseModelFactorN for backward compatibility
     ar & boost::serialization::make_nvp("NoiseModelFactor5",
          boost::serialization::base_object<Base>(*this));
-    ar & BOOST_SERIALIZATION_NVP(_PIM_);
+    ar & BOOST_SERIALIZATION_NVP(pim_);
   }
 #endif
 };
@@ -359,7 +359,7 @@ private:
   typedef ImuFactor2T<PIM> This;
   typedef NoiseModelFactorN<NavState, NavState, imuBias::ConstantBias> Base;
 
-  PIM _PIM_;
+  PIM pim_;
 
 public:
 
@@ -379,7 +379,7 @@ public:
              const PIM& preintegratedMeasurements)
       : Base(noiseModel::Gaussian::Covariance(preintegratedMeasurements.preintMeasCov()),
              state_i, state_j, bias),
-        _PIM_(preintegratedMeasurements) {}
+        pim_(preintegratedMeasurements) {}
 
 
   ~ImuFactor2T() override {
@@ -401,7 +401,7 @@ public:
   /** Access the preintegrated measurements. */
 
   const PIM& preintegratedMeasurements() const {
-    return _PIM_;
+    return pim_;
   }
 
   /** implement functions needed to derive from Factor */
@@ -422,7 +422,7 @@ private:
     // NoiseModelFactor3 instead of NoiseModelFactorN for backward compatibility
     ar & boost::serialization::make_nvp("NoiseModelFactor3",
          boost::serialization::base_object<Base>(*this));
-    ar & BOOST_SERIALIZATION_NVP(_PIM_);
+    ar & BOOST_SERIALIZATION_NVP(pim_);
   }
 #endif
 };
