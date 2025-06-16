@@ -10,7 +10,7 @@ The Invariant Kalman Filter operates on many Lie Groups commonly used in robotic
 
 
 ### Classes
-To introduce the Invariant Kalman Filter to GTSAM, we have created three classes of Extended Kalman Filters under ```navigation```. GTSAM has defined many classes of Lie Groups that may be used with these filters.
+To introduce the Invariant Kalman Filter to GTSAM, we have created three classes of Extended Kalman Filters in ```navigation```. GTSAM has defined many classes of Lie Groups that may be used with these filters.
 
 - **[ManifoldEKF](https://github.com/borglab/gtsam/blob/develop/gtsam/navigation/ManifoldEKF.h)**: Implements an EKF for states that operate on a differentiable manifold.
 - **[LieGroupEKF](https://github.com/borglab/gtsam/blob/develop/gtsam/navigation/LieGroupEKF.h)**: Implements an EKF for states that operate on a Lie group with state dependent dynamics.
@@ -90,7 +90,7 @@ Otherwise, if the motion model is an increment $\xi_k$ in the tangent space, the
 \hat{X}_{k|k-1} = \text{retract}(\hat{X}_{k-1|k-1}, \xi_k)
 ```
 
-ManifoldEKF does not define which method is used. Rather, we such that $X_{k|k-1} = X_{\text{next}}$
+ManifoldEKF does not define which method is used. Rather, we state that $X_{k|k-1} = X_{\text{next}}$
 where $X_{\text{next}}$ is defined by the user in their own prediction function. This allows the method to be flexible to any motion model. 
 
 ### ManifoldEKF Update Stage
@@ -130,9 +130,9 @@ The state is then updated using group composition; then
 ```math
 \hat{X}_{k|k-1} = \hat{X}_{k-1|k-1}U_k
 ```
-These functions also compute the full state transition Jacobian $A$ which is state dependent. This ```predictMean()``` passes this onto the ```predict()``` function. 
+These functions also compute the full state transition Jacobian $A$ which is state dependent. This ```predictMean()``` passes this result to the ```predict()``` function. 
 
-Overloaded functions of ```predictMean()``` and ```predict()``` also allows the user to pass in their own computed Jacobian $A$. 
+Overloaded versions of ```predictMean()``` and ```predict()``` also allows the user to pass in their own computed Jacobian $A$. 
 
 This class is useful for generic extended Kalman filtering on Lie Groups; however, it does not have the benefits of the IEKF.
 
@@ -141,7 +141,7 @@ This class is useful for generic extended Kalman filtering on Lie Groups; howeve
 The **[InvariantEKF](https://github.com/borglab/gtsam/blob/develop/gtsam/navigation/InvariantEKF.h)** further specializes the **[LieGroupEKF](https://github.com/borglab/gtsam/blob/develop/gtsam/navigation/LieGroupEKF.h)** for systems that reside on a Lie group with **state independent dynamics**. It inherits the update logic from ```LieGroupEKF```. 
 
 This class implements the **Left Invariant Extended Kalman Filter** where the prediction methods use group composition. 
-Let $u$ be a tangent control vector. A Lie group increment, then, is given by $U = \exp(u \cdot \Delta t)$, and so
+Let $u$ be a tangent control vector. A Lie group increment is given by $U = \exp(u \cdot \Delta t)$ such that
 ```math
 \hat{X}_{k|k-1} = \hat{X}_{k-1|k-1}U_k
 ```
@@ -150,7 +150,7 @@ The Jacobian $F$ is given by
 F_k = Ad_{U_{k}}^{-1}
 ```
 
-```InvariantEKF``` implements an overloaded ```predict()``` method. One method calls a Lie group increment $U$ directly, whereas the second overload takes in a tangent control vector $u$ and a time interval $dt$ where $U = \exp(u \cdot \Delta t)$.
+```InvariantEKF``` implements an overloaded ```predict()``` method. One method calls a Lie group increment $U$ directly, whereas the second overload takes in a tangent control vector $u$ and a time interval $\Delta t$ where $U = \exp(u \cdot \Delta t)$.
 
 
 # Examples 
