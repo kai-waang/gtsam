@@ -377,7 +377,7 @@ ekf.update(h_mag, z, Rm);
 
 
 # Class Diagram
-
+The relationship between these classes are visualized below. 
 
 ```mermaid
 classDiagram
