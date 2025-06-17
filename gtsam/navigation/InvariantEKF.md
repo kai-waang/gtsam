@@ -154,13 +154,13 @@ F_k = Ad_{U_{k}}^{-1}
 
 # Examples 
 Below are three examples of these filters in action. 
-1) **[IEKF_SE2Example](https://github.com/borglab/gtsam/blob/develop/gtsam/examples/IEKF_SE2Example.cpp)**: implements ```InvariantEKF``` on a SE(2) Lie Group with odometry as a Lie group increment and a 2D GPS measurement update.
+1) **[IEKF_SE2Example](https://github.com/borglab/gtsam/blob/develop/examples/IEKF_SE2Example.cpp)**: implements ```InvariantEKF``` on a SE(2) Lie Group with odometry as a Lie group increment and a 2D GPS measurement update.
 2) **[IEKF_NavstateExample](https://github.com/borglab/gtsam/blob/develop/examples/IEKF_NavstateExample.cpp)**: implements ```InvariantEKF``` on a NavState Lie Group with a tangent space increment based on IMU measurements, and a 3D GPS measuremnt update.
 3) **[GEKF_Rot3Example](https://github.com/borglab/gtsam/blob/develop/examples/GEKF_Rot3Example.cpp)**: implements ```LieGroupEKF``` on a Rot3 Lie Group using a state dependent dynamics function and a magnetometer update.
 
 
 ##  InvariantEKF Example on SE(2) using Lie Group increments
-The  **[IEKF_SE2Example](https://github.com/borglab/gtsam/blob/develop/gtsam/examples/IEKF_SE2Example.cpp)** demonstrates the use of an Invariant EKF with a simple odometry increment and a 2D GPS measurement processor. 
+The  **[IEKF_SE2Example](https://github.com/borglab/gtsam/blob/develop/examples/IEKF_SE2Example.cpp)** demonstrates the use of an Invariant EKF with a simple odometry increment and a 2D GPS measurement processor. 
 
 #### Defining a GPS Measurement Function
 The predicted GPS measurement $h_k$ is given by the translation of the predicted state estimate. Then, the GPS measurement function is given by
@@ -211,8 +211,8 @@ and updated using measurements via
 ekf.update(h_gps, z1, R);
 ```
 
-## InvariantEKF on NavState using a tangent space increment
-The **[IEKF_NavstateExample](https://github.com/borglab/gtsam/blob/develop/gtsam/examples/IEKF_NavstateExample.cpp)** demonstrates the use of an Invariant EKF with a tangent space increment based on IMU measurements transformed into the tangent space and a 3D GPS measurement processor. The Lie Group is NavState, or $\mathcal{SE}_2(3)$.
+## InvariantEKF on Navstate using a tangent space increment
+The **[IEKF_NavstateExample](https://github.com/borglab/gtsam/blob/develop/examples/IEKF_NavstateExample.cpp)** demonstrates the use of an Invariant EKF with a tangent space increment based on IMU measurements transformed into the tangent space and a 3D GPS measurement processor. The Lie Group is NavState, or $\mathcal{SE}_2(3)$.
 
 #### Defining the Dynamics
 An IMU utilizes accelerometers and gyroscopes to estimate the pose of the robot. This is commonly used in inertial navigation aboard aircraft. An accelerometer and gyroscope measures the proper acceleration and the angular velocity experienced by the body. Then, $u = [a_x, a_y, a_z, w_x, w_y, w_z]^T$. Transforming this to the tangent space, $\xi = [w_x, w_y, w_z, 0, 0, 0, a_x, a_y, a_z]^T$. The dynamics function, then, is given by
