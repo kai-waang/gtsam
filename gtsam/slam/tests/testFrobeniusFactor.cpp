@@ -302,6 +302,43 @@ TEST(FrobeniusBetweenFactorSimilarity2, evaluateError) {
 }
 
 /* ************************************************************************* */
+namespace sim3 {
+  Similarity3 id;
+  Similarity3 P1 = Similarity3::Expmap(Vector7(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7));
+  Similarity3 P2 = Similarity3::Expmap(Vector7(0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8));
+}  // namespace sim3
+
+/* ************************************************************************* */
+TEST(FrobeniusFactorSimilarity3, evaluateError) {
+  using namespace ::sim3;
+  auto factor = FrobeniusFactor<Similarity3>(1, 2, noiseModel::Unit::Create(16));
+  Vector actual = factor.evaluateError(P1, P2);
+  Vector expected = P2.vec() - P1.vec();
+  EXPECT(assert_equal(expected, actual, 1e-9));
+
+  Values values;
+  values.insert(1, P1);
+  values.insert(2, P2);
+  EXPECT_CORRECT_FACTOR_JACOBIANS(factor, values, 1e-7, 1e-5);
+}
+
+/* ************************************************************************* */
+TEST(FrobeniusBetweenFactorSimilarity3, evaluateError) {
+  using namespace ::sim3;
+  auto factor = FrobeniusBetweenFactor<Similarity3>(1, 2, P1.between(P2));
+  Matrix H1, H2;
+  Vector actual = factor.evaluateError(P1, P2, H1, H2);
+  Vector expected(16);
+  expected.setZero();
+  EXPECT(assert_equal(expected, actual, 1e-9));
+
+  Values values;
+  values.insert(1, P1);
+  values.insert(2, P2);
+  EXPECT_CORRECT_FACTOR_JACOBIANS(factor, values, 1e-7, 1e-5);
+}
+
+/* ************************************************************************* */
 int main() {
   TestResult tr;
   return TestRegistry::runAllTests(tr);
