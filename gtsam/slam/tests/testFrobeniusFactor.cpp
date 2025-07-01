@@ -20,14 +20,16 @@
 
 #include <gtsam/base/lieProxies.h>
 #include <gtsam/base/testLie.h>
-#include <gtsam/geometry/Rot3.h>
 #include <gtsam/geometry/Pose2.h>
 #include <gtsam/geometry/Pose3.h>
+#include <gtsam/geometry/Rot3.h>
+#include <gtsam/geometry/Similarity2.h>
+#include <gtsam/geometry/Similarity3.h>
 #include <gtsam/geometry/SO3.h>
 #include <gtsam/geometry/SO4.h>
+#include <gtsam/nonlinear/factorTesting.h>
 #include <gtsam/nonlinear/GaussNewtonOptimizer.h>
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
-#include <gtsam/nonlinear/factorTesting.h>
 #include <gtsam/slam/FrobeniusFactor.h>
 
 #include <CppUnitLite/TestHarness.h>
@@ -253,6 +255,43 @@ TEST(FrobeniusBetweenFactorPose3, evaluateError) {
   Matrix H1, H2;
   Vector actual = factor.evaluateError(P1, P2, H1, H2);
   Vector expected(16);
+  expected.setZero();
+  EXPECT(assert_equal(expected, actual, 1e-9));
+
+  Values values;
+  values.insert(1, P1);
+  values.insert(2, P2);
+  EXPECT_CORRECT_FACTOR_JACOBIANS(factor, values, 1e-7, 1e-5);
+}
+
+/* ************************************************************************* */
+namespace sim2 {
+  Similarity2 id;
+  Similarity2 P1 = Similarity2::Expmap(Vector4(0.1, 0.2, 0.3, 0.4));
+  Similarity2 P2 = Similarity2::Expmap(Vector4(0.2, 0.3, 0.4, 0.5));
+}  // namespace sim2
+
+/* ************************************************************************* */
+TEST(FrobeniusFactorSimilarity2, evaluateError) {
+  using namespace ::sim2;
+  auto factor = FrobeniusFactor<Similarity2>(1, 2, noiseModel::Unit::Create(12));
+  Vector actual = factor.evaluateError(P1, P2);
+  Vector expected = P2.vec() - P1.vec();
+  EXPECT(assert_equal(expected, actual, 1e-9));
+
+  Values values;
+  values.insert(1, P1);
+  values.insert(2, P2);
+  EXPECT_CORRECT_FACTOR_JACOBIANS(factor, values, 1e-7, 1e-5);
+}
+
+/* ************************************************************************* */
+TEST(FrobeniusBetweenFactorSimilarity2, evaluateError) {
+  using namespace ::sim2;
+  auto factor = FrobeniusBetweenFactor<Similarity2>(1, 2, P1.between(P2));
+  Matrix H1, H2;
+  Vector actual = factor.evaluateError(P1, P2, H1, H2);
+  Vector expected(9);
   expected.setZero();
   EXPECT(assert_equal(expected, actual, 1e-9));
 
