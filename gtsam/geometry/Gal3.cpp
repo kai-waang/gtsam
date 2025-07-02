@@ -41,9 +41,6 @@ namespace gtsam {
 namespace { // Anonymous namespace for internal linkage
   constexpr double kSmallAngleThreshold = 1e-10;
 
-  // The type of the Lie algebra (matrix representation)
-  using LieAlgebra = Matrix5;
-
   // Helper functions for accessing tangent vector components
   Eigen::Block<Vector10, 3, 1> rho(Vector10& v) { return v.block<3, 1>(0, 0); }
   Eigen::Block<Vector10, 3, 1> nu(Vector10& v) { return v.block<3, 1>(3, 0); }

@@ -1359,6 +1359,10 @@ class Gal3 {
   static gtsam::Gal3 Identity();
   gtsam::Gal3 inverse() const;
   gtsam::Gal3 compose(const gtsam::Gal3& other) const;
+  gtsam::Gal3 between(const gtsam::Gal3& other) const;
+
+  // Operator Overloads
+  gtsam::Gal3 operator*(const gtsam::Gal3& other) const;
 
   // Lie Group
   static gtsam::Gal3 Expmap(const gtsam::Vector10& xi);
