@@ -32,7 +32,7 @@ namespace gtsam {
    * @ingroup geometry
    * \nosubgrouping
    */
-  class GTSAM_EXPORT Rot2 : public LieGroup<Rot2, 1> {
+  class GTSAM_EXPORT Rot2 : public MatrixLieGroup<Rot2, 1, 2> {
     /** we store cos(theta) and sin(theta) */
     double c_, s_;
 
@@ -223,8 +223,7 @@ namespace gtsam {
     /** Find closest valid rotation matrix, given a 2x2 matrix */
     static Rot2 ClosestTo(const Matrix2& M);
 
-    /// Return vectorized SO(2) matrix in column order.
-    Vector4 vec(OptionalJacobian<4, 1> H = {}) const;
+    
 
     /// @}
 

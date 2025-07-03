@@ -1181,6 +1181,8 @@ TEST(Gal3, vec) {
 
     // 1. Test the Value
     const Matrix5 T = gal3.matrix();
+
+    using Vector25 = Eigen::Matrix<double, 25, 1>;
     const Vector25 expected_vec = Eigen::Map<const Vector25>(T.data());
     Vector25 actual_vec = gal3.vec();
     EXPECT(assert_equal(expected_vec, actual_vec, 1e-9));

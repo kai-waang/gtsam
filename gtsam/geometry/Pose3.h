@@ -34,7 +34,7 @@ class Pose2;
  * @ingroup geometry
  * \nosubgrouping
  */
-class GTSAM_EXPORT Pose3: public LieGroup<Pose3, 6> {
+class GTSAM_EXPORT Pose3: public MatrixLieGroup<Pose3, 6, 4> {
 public:
 
   /** Pose Concept requirements */
@@ -383,8 +383,7 @@ public:
   Pose3 slerp(double t, const Pose3& other, OptionalJacobian<6, 6> Hx = {},
                                              OptionalJacobian<6, 6> Hy = {}) const;
 
-  /// Return vectorized SE(3) matrix in column order.
-  Vector vec(OptionalJacobian<16, 6> H = {}) const;
+  
 
   /// Output stream operator
   GTSAM_EXPORT
