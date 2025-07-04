@@ -59,7 +59,7 @@ Vector3 SO3::Vee(const Matrix3& X);  ///< inverse of Hat
 
 /// Adjoint map
 template <>
-Matrix3 SO3::AdjointMap() const{ return matrix_; }
+inline Matrix3 SO3::AdjointMap() const{ return matrix_; }
 
 /**
  * Exponential map at identity - create a rotation from canonical coordinates
