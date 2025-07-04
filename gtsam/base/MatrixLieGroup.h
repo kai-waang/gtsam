@@ -32,7 +32,6 @@ namespace gtsam {
     template<class Class, int D, int N>
     auto computeVectorizedGenerators() {
       // This function is only valid for fixed-size matrices.
-      // Dynamic-size groups should provide their own `VectorizedGenerators(size_t)`.
       static_assert(D != Eigen::Dynamic && N != Eigen::Dynamic,
                     "computeVectorizedGenerators is only for fixed-size Lie groups.");
 
@@ -77,20 +76,31 @@ namespace gtsam {
       } else {  // Dynamic-size case
         const size_t n = T.rows();
         const size_t n2 = n * n;
-        Eigen::Matrix<double, Eigen::Dynamic, 1> result(n2);
-        result = Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, 1>>(T.data(), n2);
 
         if (H) {
-          // For dynamic, VectorizedGenerators must take dimension as argument.
-          // It must be a static method on the derived class. SOn has it.
-          const size_t d = derived.dim();
-          auto P = Class::VectorizedGenerators(n);
+          size_t d = D;
+          if constexpr (D == Eigen::Dynamic) {
+            d = derived.dim();
+          }
           H->resize(n2, d);
-          for (size_t i = 0; i < n; i++) {
+
+          // Create P, the matrix of vectorized generators, on the fly.
+          // Column j of P is vec(Hat(e_j)).
+          Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> P(n2, d);
+          for (size_t j = 0; j < d; ++j) {
+            const auto G_j = Class::Hat(TangentVector::Unit(d, j));
+            P.col(j) = Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, 1>>(
+                G_j.data(), n2);
+          }
+
+          // The Jacobian is given by the formula H = (I_n ⊗ T) * P
+          // This can be implemented efficiently with block-wise multiplication.
+          for (size_t i = 0; i < n; ++i) {
             H->block(i * n, 0, n, d) = T * P.block(i * n, 0, n, d);
           }
         }
-        return result;
+        return Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, 1>>(
+            T.data(), n2);
       }
     }
 
@@ -106,7 +116,9 @@ namespace gtsam {
     Jacobian AdjointMap() const {
       const auto& m = static_cast<const Class&>(*this);
       size_t d = D;
-      if constexpr (D == Eigen::Dynamic)  d = m.dim();
+      if constexpr (D == Eigen::Dynamic) {
+        d = m.dim();
+      }
       Jacobian adj(d, d);
       const auto T_mat = m.matrix();
       const auto T_inv_mat = m.inverse().matrix();
@@ -119,7 +131,7 @@ namespace gtsam {
     }
 
   private:
-    /// Pre-compute and store vectorized generators.
+    /// Pre-compute and store vectorized generators for fixed-size groups.
     inline static const Eigen::Matrix<double, internal::product(N, N), D>& VectorizedGenerators() {
       static_assert(
           N != Eigen::Dynamic && D != Eigen::Dynamic,
