@@ -178,12 +178,12 @@ Gal3::Vector25 Gal3::vec(OptionalJacobian<25, 10> H) const {
     if (H) {
         H->setZero();
         auto R = T.block<3, 3>(0, 0);
-        H->block<3, 1>(0, 6 + 1) = -R.col(2);
-        H->block<3, 1>(0, 6 + 2) = R.col(1);
-        H->block<3, 1>(5, 6 + 0) = R.col(2);
-        H->block<3, 1>(5, 6 + 2) = -R.col(0);
-        H->block<3, 1>(10, 6 + 0) = -R.col(1);
-        H->block<3, 1>(10, 6 + 1) = R.col(0);
+        H->block<3, 1>(0, 7) = -R.col(2);
+        H->block<3, 1>(0, 8) = R.col(1);
+        H->block<3, 1>(5, 6) = R.col(2);
+        H->block<3, 1>(5, 8) = -R.col(0);
+        H->block<3, 1>(10, 6) = -R.col(1);
+        H->block<3, 1>(10, 7) = R.col(0);
         H->block<3, 3>(15, 3) = R;
         H->block<3, 3>(20, 0) = R;
         H->block<3, 1>(20, 9) = T.block<3, 1>(0, 3);

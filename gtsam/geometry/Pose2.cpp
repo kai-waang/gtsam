@@ -35,10 +35,16 @@ static const Rot2 R_PI_2(Rot2::fromCosSin(0., 1.));
 
 /* ************************************************************************* */
 Matrix3 Pose2::matrix() const {
-  Matrix3 m = Matrix3::Identity();
-  m.block<2,2>(0,0) = r_.matrix();
-  m.block<2,1>(0,2) = t_;
-  return m;
+  Matrix2 R = r_.matrix();
+  Matrix32 R0;
+  R0.block<2,2>(0,0) = R;
+  R0.block<1,2>(2,0).setZero();
+  Matrix31 T;
+  T <<  t_.x(), t_.y(), 1.0;
+  Matrix3 RT_;
+  RT_.block<3,2>(0,0) = R0;
+  RT_.block<3,1>(0,2) = T;
+  return RT_;
 }
 
 /* ************************************************************************* */
