@@ -19,18 +19,18 @@
 #include <gtsam/linear/NoiseModel.h>
 #include <gtsam/navigation/NavState.h>
 #include <gtsam/base/Lie.h>
+#include <gtsam/dllexport.h>
 
 #include <map>
 #include <stdexcept>
-#include <fstream>
-#include <sstream>
 #include <string>
-#include <vector>
+
+using namespace std;
 
 namespace gtsam {
 
 /// Simple trajectory simulator.
-class Scenario {
+class GTSAM_EXPORT Scenario {
  public:
   /// virtual destructor
   virtual ~Scenario() {}
@@ -44,18 +44,12 @@ class Scenario {
 
   // Derived quantities:
 
-  Rot3 rotation(double t) const { return pose(t).rotation(); }
-  NavState navState(double t) const { return NavState(pose(t), velocity_n(t)); }
+  Rot3 rotation(double t) const;
+  NavState navState(double t) const;
 
-  Vector3 velocity_b(double t) const {
-    const Rot3 nRb = rotation(t);
-    return nRb.transpose() * velocity_n(t);
-  }
+  Vector3 velocity_b(double t) const;
 
-  Vector3 acceleration_b(double t) const {
-    const Rot3 nRb = rotation(t);
-    return nRb.transpose() * acceleration_n(t);
-  }
+  Vector3 acceleration_b(double t) const;
 };
 
 /**
@@ -65,21 +59,17 @@ class Scenario {
  * compensated by thrust. The accelerometer will add the gravity component back
  * in, as modeled by the specificForce method in ScenarioRunner.
  */
-class ConstantTwistScenario : public Scenario {
+class GTSAM_EXPORT ConstantTwistScenario : public Scenario {
  public:
   /// Construct scenario with constant twist [w,v]
   ConstantTwistScenario(const Vector3& w, const Vector3& v,
                         const Pose3& nTb0 = Pose3())
       : twist_((Vector6() << w, v).finished()), a_b_(w.cross(v)), nTb0_(nTb0) {}
 
-  Pose3 pose(double t) const override {
-    return nTb0_ * Pose3::Expmap(twist_ * t);
-  }
-  Vector3 omega_b(double t) const override { return twist_.head<3>(); }
-  Vector3 velocity_n(double t) const override {
-    return rotation(t).matrix() * twist_.tail<3>();
-  }
-  Vector3 acceleration_n(double t) const override { return rotation(t) * a_b_; }
+  Pose3 pose(double t) const override;
+  Vector3 omega_b(double t) const override;
+  Vector3 velocity_n(double t) const override;
+  Vector3 acceleration_n(double t) const override;
 
  private:
   const Vector6 twist_;
@@ -88,7 +78,7 @@ class ConstantTwistScenario : public Scenario {
 };
 
 /// Accelerating from an arbitrary initial state, with optional rotation
-class AcceleratingScenario : public Scenario {
+class GTSAM_EXPORT AcceleratingScenario : public Scenario {
  public:
   /// Construct scenario with constant acceleration in navigation frame and
   /// optional angular velocity in body: rotating while translating...
@@ -97,12 +87,10 @@ class AcceleratingScenario : public Scenario {
                        const Vector3& omega_b = Vector3::Zero())
       : nRb_(nRb), p0_(p0), v0_(v0), a_n_(a_n), omega_b_(omega_b) {}
 
-  Pose3 pose(double t) const override {
-    return Pose3(nRb_.expmap(omega_b_ * t), p0_ + v0_ * t + a_n_ * t * t / 2.0);
-  }
-  Vector3 omega_b(double t) const override { return omega_b_; }
-  Vector3 velocity_n(double t) const override { return v0_ + a_n_ * t; }
-  Vector3 acceleration_n(double t) const override { return a_n_; }
+  Pose3 pose(double t) const override;
+  Vector3 omega_b(double t) const override;
+  Vector3 velocity_n(double t) const override;
+  Vector3 acceleration_n(double t) const override;
 
  private:
   const Rot3 nRb_;
@@ -119,7 +107,7 @@ class AcceleratingScenario : public Scenario {
  * range of the provided timestamps, the value at the nearest endpoint is
  * returned (i.e., the data is clamped).
  */
-class DiscreteScenario : public Scenario {
+class GTSAM_EXPORT DiscreteScenario : public Scenario {
  public:
   /**
    * Constructor.
@@ -128,17 +116,17 @@ class DiscreteScenario : public Scenario {
    * @param velocities_n Map of timestamps to ground truth linear velocities in nav frame.
    * @param accelerations_n Map of timestamps to ground truth linear accelerations in nav frame.
    */
-  DiscreteScenario(const std::map<double, Pose3>& poses,
-                   const std::map<double, Vector3>& angularVelocities_b,
-                   const std::map<double, Vector3>& velocities_n,
-                   const std::map<double, Vector3>& accelerations_n)
+  DiscreteScenario(const map<double, Pose3>& poses,
+                   const map<double, Vector3>& angularVelocities_b,
+                   const map<double, Vector3>& velocities_n,
+                   const map<double, Vector3>& accelerations_n)
       : poses_(poses),
         angularVelocities_b_(angularVelocities_b),
         velocities_n_(velocities_n),
         accelerations_n_(accelerations_n) {
     if (poses_.empty() || angularVelocities_b_.empty() ||
         velocities_n_.empty() || accelerations_n_.empty()) {
-      throw std::invalid_argument(
+      throw invalid_argument(
           "Input maps for DiscreteScenario cannot be empty.");
     }
   }
@@ -155,102 +143,27 @@ class DiscreteScenario : public Scenario {
    *
    * @param csv_filepath Path to the CSV file.
    * @return A constructed DiscreteScenario.
-   * @throws std::runtime_error if file cannot be opened or is malformed.
+   * @throws runtime_error if file cannot be opened or is malformed.
    */
-  static DiscreteScenario FromCSV(const std::string& csv_filepath) {
-    std::ifstream file(csv_filepath);
-    if (!file.is_open()) {
-      throw std::runtime_error(
-          "DiscreteScenario::FromCSV: Could not open file " + csv_filepath);
-    }
-
-    // Temporary storage for data before timestamp normalization
-    struct DataPoint {
-      double t;
-      Pose3 pose;
-      Vector3 omega_b, velocity_n, acceleration_n;
-    };
-    std::vector<DataPoint> data_points;
-
-    std::string line;
-    // Skip header line
-    if (!std::getline(file, line)) {
-      throw std::runtime_error(
-          "DiscreteScenario::FromCSV: CSV file is empty or contains no data.");
-    }
-
-    // Read data rows
-    int line_number = 1;
-    while (std::getline(file, line)) {
-      line_number++;
-      std::stringstream ss(line);
-      char comma; // To consume the commas
-      DataPoint dp;
-      double px, py, pz, qw, qx, qy, qz;
-
-      // clang-format off
-      if (!(ss >> dp.t >> comma >> px >> comma >> py >> comma >> pz >> comma >>
-            qw >> comma >> qx >> comma >> qy >> comma >> qz >> comma >>
-            dp.velocity_n[0] >> comma >> dp.velocity_n[1] >> comma >> 
-            dp.velocity_n[2] >> comma >> dp.omega_b[0] >> comma >> 
-            dp.omega_b[1] >> comma >> dp.omega_b[2] >> comma >> 
-            dp.acceleration_n[0] >> comma >> dp.acceleration_n[1] >> comma >> 
-            dp.acceleration_n[2])) {
-        throw std::runtime_error(
-            "DiscreteScenario::FromCSV: Malformed data at line " +
-            std::to_string(line_number));
-      }
-      // clang-format on
-      
-      dp.pose = Pose3(Rot3::Quaternion(qw, qx, qy, qz), Point3(px, py, pz));
-      data_points.push_back(dp);
-    }
-
-    if (data_points.empty()) {
-      throw std::runtime_error(
-          "DiscreteScenario::FromCSV: No data points loaded from file.");
-    }
-
-    // Normalize timestamps and populate maps
-    const double t0 = data_points.front().t;
-    std::map<double, Pose3> poses;
-    std::map<double, Vector3> angularVelocities_b, velocities_n, accelerations_n;
-
-    for (const auto& dp : data_points) {
-      const double normalized_t = dp.t - t0;
-      poses[normalized_t] = dp.pose;
-      angularVelocities_b[normalized_t] = dp.omega_b;
-      velocities_n[normalized_t] = dp.velocity_n;
-      accelerations_n[normalized_t] = dp.acceleration_n;
-    }
-
-    return DiscreteScenario(poses, angularVelocities_b, velocities_n,
-                            accelerations_n);
-  }
+  static DiscreteScenario FromCSV(const string& csv_filepath);
 
   /// @name Scenario interface
   /// @{
-  Pose3 pose(double t) const override { return interpolate(poses_, t); }
-  Vector3 omega_b(double t) const override {
-    return interpolate(angularVelocities_b_, t);
-  }
-  Vector3 velocity_n(double t) const override {
-    return interpolate(velocities_n_, t);
-  }
-  Vector3 acceleration_n(double t) const override {
-    return interpolate(accelerations_n_, t);
-  }
+  Pose3 pose(double t) const override;
+  Vector3 omega_b(double t) const override;
+  Vector3 velocity_n(double t) const override;
+  Vector3 acceleration_n(double t) const override;
   /// @}
 
  private:
   /// Map from timestamp to pose.
-  std::map<double, Pose3> poses_;
+  map<double, Pose3> poses_;
   /// Map from timestamp to angular velocity in body frame.
-  std::map<double, Vector3> angularVelocities_b_;
+  map<double, Vector3> angularVelocities_b_;
   /// Map from timestamp to velocity in navigation frame.
-  std::map<double, Vector3> velocities_n_;
+  map<double, Vector3> velocities_n_;
   /// Map from timestamp to acceleration in navigation frame.
-  std::map<double, Vector3> accelerations_n_;
+  map<double, Vector3> accelerations_n_;
 
   /**
    * @brief Internal helper to interpolate values in a time-stamped map.
@@ -265,7 +178,7 @@ class DiscreteScenario : public Scenario {
    * @return The interpolated value.
    */
   template <typename T>
-  T interpolate(const std::map<double, T>& values, double t) const {
+  T interpolate(const map<double, T>& values, double t) const {
     // Find the first element with a timestamp >= t
     auto it2 = values.lower_bound(t);
 
@@ -280,7 +193,7 @@ class DiscreteScenario : public Scenario {
     }
 
     // Standard case: t is between it1 and it2.
-    auto it1 = std::prev(it2);
+    auto it1 = prev(it2);
 
     const double t1 = it1->first;
     const T& value1 = it1->second;
@@ -289,7 +202,7 @@ class DiscreteScenario : public Scenario {
 
     const double dt = t2 - t1;
     // Avoid division by zero if timestamps are identical
-    if (std::abs(dt) < 1e-9) {
+    if (abs(dt) < 1e-9) {
       return value1;
     }
 
